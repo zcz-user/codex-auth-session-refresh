@@ -17,23 +17,30 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
       - name: Check for vulnerable dependencies
-        run: npm audit --production || true
+        run: npm audit --omit=dev
         continue-on-error: true
 
       - name: Validate package.json structure
-        run: node -e "
+        run: |
+          node - <<'NODE'
           const pkg = require('./package.json');
-          const required = ['name','version','description','scripts','dependencies'];
-          required.forEach(k => { if (!pkg[k]) throw new Error('Missing: '+k); });
+          const required = ['name', 'version', 'description', 'scripts', 'dependencies'];
+
+          for (const key of required) {
+            if (!pkg[key]) {
+              throw new Error(`Missing package.json field: ${key}`);
+            }
+          }
+
           console.log('[OK] package.json validated');
-        "
+          NODE
 
   powershell-style:
     name: PowerShell Script Analysis
@@ -42,6 +49,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Analyze PowerShell scripts
+        shell: pwsh
         run: |
           $results = @()
           Get-ChildItem -Path . -Filter *.ps1 -Recurse | ForEach-Object {
@@ -49,13 +57,14 @@ jobs:
             if ($content.Length -eq 0) {
               $results += [PSCustomObject]@{ File = $_.Name; Status = 'EMPTY' }
             } else {
-              $results += [PSCustomObject]@{ File = $_.Name; Status = 'OK'; Lines = $content.Split(\"`n\").Count }
+              $results += [PSCustomObject]@{ File = $_.Name; Status = 'OK'; Lines = (($content -split "`n").Count) }
             }
           }
           $results | Format-Table -AutoSize
           if ($results.Status -contains 'EMPTY') { exit 1 }
+
       - name: Verify PowerShell syntax
-        shell: powershell
+        shell: pwsh
         run: |
           Get-ChildItem -Path . -Filter *.ps1 -Recurse | ForEach-Object {
             $errors = $null
@@ -64,7 +73,7 @@ jobs:
               Write-Error "Syntax errors in $($_.Name): $errors"
               exit 1
             }
-            Write-Host "[OK] $($_.Name) — syntax valid"
+            Write-Host "[OK] $($_.Name) syntax valid"
           }
 
   markdown:
@@ -79,12 +88,14 @@ jobs:
             echo "::error::README.md not found"
             exit 1
           fi
+
           LINES=$(wc -l < README.md)
           if [ "$LINES" -lt 50 ]; then
             echo "::error::README.md too short ($LINES lines)"
             exit 1
           fi
-          echo "[OK] README.md — $LINES lines"
+
+          echo "[OK] README.md - $LINES lines"
 
       - name: Verify SECURITY.md exists
         run: |
@@ -92,4 +103,5 @@ jobs:
             echo "::error::SECURITY.md not found"
             exit 1
           fi
+
           echo "[OK] SECURITY.md found"
