@@ -1,4 +1,3 @@
-$ErrorActionPreference = "Stop"
 
 param(
   [string]$ToolboxName = "Codex登录刷新工具"
