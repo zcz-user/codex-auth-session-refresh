@@ -26,20 +26,32 @@
 
 ---
 
-## 💡 Why This Exists
+## 🎯 Who Is This For?
 
-Codex CLI needs a valid `access_token` in `~/.codex/auth.json`. The standard OAuth login flow doesn't work in many real-world setups:
+**You, if you're a Codex CLI user** who is stuck with any of these:
 
-| 🚫 Scenario | ⚡ Impact |
-|------------|-----------|
-| **Corporate proxy** | OAuth redirects blocked by firewall |
-| **WSL / Docker** | No browser available to complete flow |
-| **Remote desktop (SSH)** | Auth popups fail silently |
-| **Short token TTL** | Must re-authenticate every few hours |
+| 😤 Problem | 💥 The pain |
+|------------|------------|
+| **Codex OAuth won't complete** | Corporate proxies, WSL, containers — the browser never opens right |
+| **OpenAI 2FA every time** | Re-authenticating every few hours is a nightmare |
+| **Forced to use API proxies** | You want official Codex features, but auth keeps failing so you settle for third-party |
+| **Token expires mid-session** | Lose your context, have to re-auth, workflow destroyed |
 
-**This tool bridges the gap** — it reads your own ChatGPT browser session to extract a fresh token and writes it directly to Codex's `auth.json`.
+**If any of this sounds like you, this tool is for you.**
 
-> No reverse engineering. No MITM. No API abuse. Just your browser doing what it already does.
+You paid for ChatGPT / Codex. You should be able to *use* it. This tool gets your auth working so you can focus on coding, not fighting login screens.
+
+---
+
+## 💡 What This Does
+
+Extracts a fresh `access_token` from your existing ChatGPT browser session and writes it directly to Codex CLI's `~/.codex/auth.json`.
+
+**No reverse engineering. No MITM. No API abuse.** Just your browser giving Codex what it needs.
+
+```
+Your ChatGPT session → codex-auth → ~/.codex/auth.json → Codex CLI works
+```
 
 ---
 
@@ -48,75 +60,64 @@ Codex CLI needs a valid `access_token` in `~/.codex/auth.json`. The standard OAu
 | | |
 |---|---|
 | 🔌 **One command setup** | `npm install && .\login-profile.ps1` — done |
-| 🤖 **Auto-refresh** | Windows Scheduled Task, configurable interval |
+| 🤖 **Auto-refresh** | Windows Scheduled Task so you never lose auth again |
 | 🛡️ **Safe by design** | Token never logged, backup before every write |
 | 🪟 **Desktop shortcuts** | `create-desktop-toolbox.ps1` — click to run |
 | 🔍 **Health dashboard** | `status.ps1` — task + token state at a glance |
 | 🔧 **Fully configurable** | 6 environment variables for custom paths |
-| 📦 **Zero runtime deps** | Only `playwright-core` — no bloated framework |
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### One-liner install
 
 ```powershell
-git clone https://github.com/zcz-user/codex-auth-session-refresh.git && cd codex-auth-session-refresh && npm install
+git clone https://github.com/zcz-user/codex-auth-session-refresh.git
+cd codex-auth-session-refresh
+npm install
 ```
 
-### First use
+### Login once
 
 ```powershell
 .\login-profile.ps1
 # → Browser opens → Login to ChatGPT → Press Enter
+```
+
+### Verify
+
+```powershell
 .\status.ps1
-# → Verify token is active
+# → Check Codex auth.json is active
 ```
 
-<details>
-<summary><b>📸 What you'll see (click to expand)</b></summary>
+### Set it and forget it
 
+```powershell
+.\install-scheduled-task.ps1
+# → Auto-refresh every 4 hours
 ```
-=== Codex Auth Refresh Status ===
-
-[TASK] Name: CodexAuthSessionRefresh
-[TASK] State: Ready
-[TASK] LastRunTime: 6/10/2026 7:55:00 PM
-[TASK] LastTaskResult: 0 (0 means success)
-[TASK] NextRunTime: 6/10/2026 11:55:00 PM
-
-[AUTH] Path: C:\Users\you\.codex\auth.json
-[AUTH] auth_mode: chatgpt
-[AUTH] last_refresh: 2026-06-10T11:55:00.000Z
-[AUTH] access_token length: 1024
-[AUTH] account_id present: True
-
-[LOG] Last entries:
-{"time":"2026-06-10T11:55:00.000Z","status":"success"}
-```
-
-</details>
 
 ---
 
 ## 📋 Reference
 
-### All Commands
+### Commands
 
 | Command | What it does |
 |---------|-------------|
 | `login-profile.ps1` | First login / re-login (opens browser) |
-| `run-refresh.ps1` | Refresh token now (browser auto-closes) |
-| `status.ps1` | Check task + token state |
-| `install-scheduled-task.ps1` | Set up auto-refresh every N hours |
+| `run-refresh.ps1` | Refresh Codex's token now (browser auto-closes) |
+| `status.ps1` | Check Codex auth.json state |
+| `install-scheduled-task.ps1` | Auto-refresh every N hours |
 | `create-desktop-toolbox.ps1` | Create desktop shortcuts |
 
-### Environment Variables
+### Env Variables
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `CODEX_AUTH_PATH` | `~/.codex/auth.json` | Target auth file |
+| `CODEX_AUTH_PATH` | `~/.codex/auth.json` | Codex auth file target |
 | `CODEX_AUTH_REFRESH_BROWSER` | _auto-detect_ | Chrome/Edge path override |
 | `CODEX_AUTH_REFRESH_PROFILE` | `./browser-profile` | Browser profile storage |
 | `CODEX_AUTH_REFRESH_BACKUP` | `./backups` | Auth file backup dir |
@@ -134,61 +135,37 @@ Unregister-ScheduledTask -TaskName "CodexAuthSessionRefresh" -Confirm:$false
 
 ---
 
-## 🛡️ Security Model
+## 🛡️ Security
 
 | Attack Vector | Mitigation |
 |---------------|------------|
-| `.gitignore` | `browser-profile/`, `logs/`, `backups/`, `*.log`, `auth.json` all excluded |
+| `.gitignore` | `browser-profile/`, `logs/`, `backups/`, `auth.json` all excluded |
 | Token leak | Logs explicitly `delete safe.token` before writing |
 | Corrupted auth | Backup with timestamp **before every write** |
-| Stale session | Separate `login-profile.ps1` for clean re-auth |
 
-> **If compromised:** Sign out all ChatGPT sessions → delete `browser-profile/` → rotate credentials.
+> **Compromised?** Sign out all ChatGPT sessions → delete `browser-profile/` → rotate credentials.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Your Windows Machine                          │
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────────┐    ┌───────────────┐  │
-│  │   ChatGPT    │    │    Playwright    │    │   Codex CLI   │  │
-│  │   Session    │───▶│  (persistent)    │───▶│  auth.json    │  │
-│  └──────────────┘    └──────────────────┘    └───────────────┘  │
-│                              │                                   │
-│                              ▼                                   │
-│                   ┌────────────────────┐                         │
-│                   │  Scheduled Task    │                         │
-│                   │  (every N hours)   │                         │
-│                   └────────────────────┘                         │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Stack:** Node.js 18+ → Playwright Core → Chrome/Edge → ChatGPT API
-
----
-
-## 📦 Project Structure
-
-```
-codex-auth-session-refresh/
-├── scripts/
-│   └── refresh-codex-auth.js       # Core engine
-├── .github/workflows/ci.yml        # CI pipeline
-├── assets/
-│   ├── header-light.svg            # README banner (light)
-│   └── header-dark.svg             # README banner (dark)
-├── login-profile.ps1               # First login flow
-├── run-refresh.ps1                 # Manual refresh
-├── status.ps1                      # Health check
-├── install-scheduled-task.ps1      # Auto-refresh setup
-├── create-desktop-toolbox.ps1      # Desktop shortcuts
-├── SECURITY.md                     # Security deep-dive
-├── CONTRIBUTING.md                 # Contribution guide
-├── README.md                       # This file
-└── README_zh.md                    # 中文文档
+┌───────────────────────────────────────────────────────────┐
+│                   Your Windows Machine                     │
+│                                                           │
+│  browser → Playwright → chatgpt.com/api/auth/session     │
+│                              │                            │
+│                              ▼                            │
+│                   ┌─────────────────────┐                  │
+│                   │  ~/.codex/auth.json │◀── Codex reads  │
+│                   └─────────┬───────────┘                  │
+│                             │                              │
+│                             ▼                              │
+│                   ┌────────────────────┐                   │
+│                   │ Windows Task       │                   │
+│                   │ (auto-refresh)     │                   │
+│                   └────────────────────┘                   │
+└───────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -201,6 +178,5 @@ codex-auth-session-refresh/
     <img src="https://img.shields.io/github/forks/zcz-user/codex-auth-session-refresh?style=social" alt="Forks">
   </a>
   <br>
-  <sub>Made with 🔥 for developers stuck behind firewalls</sub><br>
-  <sub>🧩 Also available as a <a href="https://clawhub.com/skill/codex-auth-session">ClawHub skill</a></sub>
+  <sub>🧩 Codex Skill — because you paid for Codex, you should be able to use it</sub>
 </p>

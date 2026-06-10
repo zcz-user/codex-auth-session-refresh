@@ -24,33 +24,43 @@
 
 ---
 
-## 💡 为什么需要这个工具
+## 🎯 这个工具给谁的？
 
-Codex CLI 需要在 `~/.codex/auth.json` 里有一个有效的 `access_token`。但标准 OAuth 登录在很多场景下走不通：
+**给所有用 Codex CLI 但被验证码折磨的人。** 看看是不是你：
 
-| 🚫 场景 | ⚡ 影响 |
-|---------|--------|
-| **公司代理/防火墙** | OAuth 重定向被拦截 |
-| **WSL / Docker 容器** | 没有浏览器可用 |
-| **远程桌面 / SSH** | 认证弹窗失败 |
-| **Token 过期快** | 几小时就得重来一次 |
+| 😤 痛点 | 💥 有多烦 |
+|---------|----------|
+| **Codex OAuth 死活登不上** | 公司代理、WSL、容器——浏览器根本弹不出来 |
+| **OpenAI 二次验证每次都要搞** | 几小时过期一次，重登到崩溃 |
+| **被迫用中转站/代理 API** | 想用官方功能，但验证码过不去，只能用第三方 |
+| **token 写到一半过期** | 上下文全丢，重新来，工作效率归零 |
 
-**这个工具解决了这个 gap** — 从你已有的 ChatGPT 浏览器会话中读取 token，直接写入 Codex 的 `auth.json`。
-
-> 无需逆向。无需抓包。无需滥用 API。
+**中一条就是你。** 你花了钱订 ChatGPT / Codex，你**应该能用它**。这个工具就是让你跳过验证码的折磨，直接写代码。
 
 ---
 
-## ✨ 特性一览
+## 💡 原理
+
+从你已有的 ChatGPT 浏览器会话里提取 `access_token`，直接写进 Codex CLI 的 `~/.codex/auth.json`。
+
+**不需要逆向。不需要抓包。不需要滥用 API。** 就是让你的浏览器帮 Codex 拿个通行证。
+
+```
+你的 ChatGPT 会话 → codex-auth → ~/.codex/auth.json → Codex CLI 直接干活
+```
+
+---
+
+## ✨ 功能
 
 | | |
 |---|---|
-| 🔌 **一行安装** | `npm install && .\login-profile.ps1` — 搞定 |
-| 🤖 **自动刷新** | Windows 定时任务，间隔可配 |
-| 🛡️ **安全设计** | Token 永不记日志，每次更新前自动备份 |
-| 🪟 **桌面快捷** | `create-desktop-toolbox.ps1` — 一键直达 |
-| 🔍 **健康面板** | `status.ps1` — 任务 + token 状态一目了然 |
-| 🔧 **完全可配** | 6 个环境变量，自定义路径 |
+| 🔌 **一行搞定** | `npm install && .\login-profile.ps1` — 完事 |
+| 🤖 **自动续命** | Windows 定时任务刷新，再也不怕过期 |
+| 🛡️ **安全设计** | Token 永不记日志，每次更新自动备份 |
+| 🪟 **桌面快捷** | `create-desktop-toolbox.ps1` — 点一下就刷 |
+| 🔍 **状态面板** | `status.ps1` — 一眼看出 token 有没有问题 |
+| 🔧 **灵活配置** | 6 个环境变量，路径随便改 |
 
 ---
 
@@ -61,42 +71,20 @@ git clone https://github.com/zcz-user/codex-auth-session-refresh.git
 cd codex-auth-session-refresh
 npm install
 .\login-profile.ps1     # → 弹窗 → 登录 ChatGPT → 回车
-.\status.ps1            # → 验证 token 状态
+.\status.ps1            # 看看 Codex 认不认这个 token
+.\install-scheduled-task.ps1  # 再也不用手动刷了
 ```
-
-<details>
-<summary><b>📸 输出示例（点击展开）</b></summary>
-
-```
-=== Codex Auth Refresh Status ===
-
-[TASK] Name: CodexAuthSessionRefresh
-[TASK] State: Ready
-[TASK] LastRunTime: 2026/6/10 19:55:00
-[TASK] LastTaskResult: 0 (0 表示成功)
-
-[AUTH] Path: C:\Users\你\.codex\auth.json
-[AUTH] auth_mode: chatgpt
-[AUTH] last_refresh: 2026-06-10T11:55:00.000Z
-[AUTH] access_token length: 1024
-[AUTH] account_id present: True
-
-[LOG] Last entries:
-{"time":"2026-06-10T11:55:00.000Z","status":"success"}
-```
-
-</details>
 
 ---
 
 ## 📋 命令速查
 
-| 命令 | 说明 |
-|------|------|
+| 命令 | 干什么 |
+|------|--------|
 | `login-profile.ps1` | 首次登录 / 重登（弹浏览器） |
-| `run-refresh.ps1` | 立即刷新（浏览器自动关） |
-| `status.ps1` | 查看任务 + token 状态 |
-| `install-scheduled-task.ps1` | 安装定时自动刷新 |
+| `run-refresh.ps1` | 立刻刷 Codex token（浏览器自动关） |
+| `status.ps1` | 查看 Codex auth 状态 |
+| `install-scheduled-task.ps1` | 装定时任务，自动续命 |
 | `create-desktop-toolbox.ps1` | 桌面快捷工具箱 |
 
 ### 定时任务
@@ -109,71 +97,39 @@ npm install
 Unregister-ScheduledTask -TaskName "CodexAuthSessionRefresh" -Confirm:$false
 ```
 
-### 环境变量
-
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `CODEX_AUTH_PATH` | `~/.codex/auth.json` | 目标 auth.json |
-| `CODEX_AUTH_REFRESH_BROWSER` | 自动检测 | Chrome/Edge 路径 |
-| `CODEX_AUTH_REFRESH_PROFILE` | `./browser-profile` | 浏览器配置目录 |
-| `CODEX_AUTH_REFRESH_BACKUP` | `./backups` | 备份目录 |
-| `CODEX_AUTH_REFRESH_LOG` | `./logs` | 日志目录 |
-
 ---
 
-## 🛡️ 安全设计
+## 🛡️ 安全
 
-| 攻击面 | 防护措施 |
-|--------|---------|
-| `.gitignore` | `browser-profile/`、`logs/`、`backups/`、`auth.json` 全部排除 |
-| Token 泄漏 | 日志明确 `delete safe.token` 后再写入 |
-| auth.json 损坏 | **每次写入前**带时间戳备份 |
-| 会话过期 | 提供独立的 `login-profile.ps1` 重新登录 |
+| 风险 | 怎么防 |
+|------|--------|
+| 误提交到 Git | `browser-profile/`、`logs/`、`auth.json` 全在 `.gitignore` 里 |
+| Token 泄漏 | 日志明确 `delete safe.token` 再写入 |
+| auth.json 写坏 | 每次更新前**带时间戳备份** |
 
-> **如果泄露：** 登出所有 ChatGPT 会话 → 删 `browser-profile/` → 改密码。
+> **泄露了？** 登出所有 ChatGPT 会话 → 删 `browser-profile/` → 改密码。
 
 ---
 
 ## 🏗️ 架构
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        你的 Windows 电脑                          │
-│                                                                  │
-│  ┌──────────────┐    ┌──────────────────┐    ┌───────────────┐  │
-│  │   ChatGPT    │    │    Playwright    │    │   Codex CLI   │  │
-│  │   浏览器会话   │───▶│  (浏览器引擎)     │───▶│  auth.json    │  │
-│  └──────────────┘    └──────────────────┘    └───────────────┘  │
-│                              │                                   │
-│                              ▼                                   │
-│                   ┌────────────────────┐                         │
-│                   │  Windows 定时任务   │                         │
-│                   │  (每 N 小时)        │                         │
-│                   └────────────────────┘                         │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**技术栈：** Node.js 18+ → Playwright Core → Chrome/Edge → ChatGPT API
-
----
-
-## 📦 项目结构
-
-```
-codex-auth-session-refresh/
-├── scripts/
-│   └── refresh-codex-auth.js       # 核心引擎
-├── .github/workflows/ci.yml        # CI 流水线
-├── assets/
-│   ├── header-light.svg            # README 横幅（亮色）
-│   └── header-dark.svg             # README 横幅（暗色）
-├── login-profile.ps1               # 首次登录
-├── run-refresh.ps1                 # 手动刷新
-├── status.ps1                      # 健康检查
-├── install-scheduled-task.ps1      # 定时任务安装
-├── create-desktop-toolbox.ps1      # 桌面快捷方式
-├── README.md                       # 英文文档
-└── README_zh.md                    # 本文
+┌───────────────────────────────────────────────────────────┐
+│                        你的 Windows                         │
+│                                                           │
+│  浏览器 → Playwright → chatgpt.com/api/auth/session       │
+│                              │                            │
+│                              ▼                            │
+│                   ┌─────────────────────┐                  │
+│                   │  ~/.codex/auth.json │◀── Codex 会读    │
+│                   └─────────┬───────────┘                  │
+│                             │                              │
+│                             ▼                              │
+│                   ┌────────────────────┐                   │
+│                   │ Windows 定时任务    │                   │
+│                   │ (自动刷新)          │                   │
+│                   └────────────────────┘                   │
+└───────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -186,5 +142,5 @@ codex-auth-session-refresh/
     <img src="https://img.shields.io/github/forks/zcz-user/codex-auth-session-refresh?style=social" alt="Forks">
   </a>
   <br>
-  <sub>🪟 给困在防火墙后面的开发者准备的小工具</sub>
+  <sub>🧩 Codex Skill — 你付了钱，你就该用上</sub>
 </p>
