@@ -10,7 +10,7 @@
   &nbsp;·&nbsp;
   <a href="https://github.com/zcz-user/codex-auth-session-refresh/issues">Report Bug</a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/zcz-user/codex-auth-session-refresh/discussions">Discussion</a>
+  <a href="https://clawhub.com/skill/codex-auth-session">🧩 ClawHub Skill</a>
 </p>
 
 <p align="center">
@@ -21,6 +21,7 @@
   <img src="https://img.shields.io/github/license/zcz-user/codex-auth-session-refresh?style=flat-square" alt="MIT">
   <img src="https://img.shields.io/github/last-commit/zcz-user/codex-auth-session-refresh?style=flat-square&logo=git" alt="Last commit">
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome">
+  <img src="https://img.shields.io/badge/ClawHub-Skill-8A2BE2?style=flat-square" alt="ClawHub Skill">
 </p>
 
 ---
@@ -200,5 +201,6 @@ codex-auth-session-refresh/
     <img src="https://img.shields.io/github/forks/zcz-user/codex-auth-session-refresh?style=social" alt="Forks">
   </a>
   <br>
-  <sub>Made with 🔥 for developers stuck behind firewalls</sub>
+  <sub>Made with 🔥 for developers stuck behind firewalls</sub><br>
+  <sub>🧩 Also available as a <a href="https://clawhub.com/skill/codex-auth-session">ClawHub skill</a></sub>
 </p>
