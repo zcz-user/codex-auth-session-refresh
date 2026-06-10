@@ -34,6 +34,7 @@ Codex CLI needs a valid `access_token` in `~/.codex/auth.json`. The standard OAu
 | **Corporate proxy** | OAuth redirects blocked by firewall |
 | **WSL / Docker** | No browser available to complete flow |
 | **Remote desktop (SSH)** | Auth popups fail silently |
+| **📱 Phone verification** | OpenAI SMS code → no overseas phone number → stuck |
 | **Short token TTL** | Must re-authenticate every few hours |
 
 **This tool bridges the gap** — it reads your own ChatGPT browser session to extract a fresh token and writes it directly to Codex's `auth.json`.

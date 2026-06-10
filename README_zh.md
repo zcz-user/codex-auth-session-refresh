@@ -33,6 +33,7 @@ Codex CLI 需要在 `~/.codex/auth.json` 里有一个有效的 `access_token`。
 | **公司代理/防火墙** | OAuth 重定向被拦截 |
 | **WSL / Docker 容器** | 没有浏览器可用 |
 | **远程桌面 / SSH** | 认证弹窗失败 |
+| **📱 手机验证码** | OpenAI 要收 SMS，没有外区手机号根本登不了 |
 | **Token 过期快** | 几小时就得重来一次 |
 
 **这个工具解决了这个 gap** — 从你已有的 ChatGPT 浏览器会话中读取 token，直接写入 Codex 的 `auth.json`。
