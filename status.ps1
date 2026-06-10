@@ -1,9 +1,9 @@
-$ErrorActionPreference = "SilentlyContinue"
 
 param(
   [string]$TaskName = "CodexAuthSessionRefresh",
   [string]$AuthPath = "$env:USERPROFILE\.codex\auth.json"
 )
+$ErrorActionPreference = "SilentlyContinue"
 
 $root = $PSScriptRoot
 $logPath = Join-Path $root "logs\refresh.log.jsonl"
